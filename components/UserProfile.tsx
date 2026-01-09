@@ -1,6 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { User, DocumentType } from '../types';
+import { UserGuide } from './UserGuide';
 
 interface UserProfileProps {
     user: User;
@@ -8,6 +9,7 @@ interface UserProfileProps {
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
+    const [showGuide, setShowGuide] = useState(false);
     
     const getDaysRemaining = () => {
         if (!user.subscriptionExpiry) return 0;
@@ -54,6 +56,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
                         </p>
                     )}
                     
+                    <button 
+                        onClick={() => setShowGuide(true)}
+                        className="w-full py-3 bg-blue-50 hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-200 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-blue-500/30 flex items-center justify-center gap-2"
+                    >
+                        📚 Qanday Foydalanaman?
+                    </button>
                     <button 
                         onClick={onLogout}
                         className="w-full py-3 bg-red-50 hover:bg-red-500 hover:text-white text-red-600 border border-red-200 rounded-xl text-sm font-bold transition-all shadow-sm hover:shadow-red-500/30 flex items-center justify-center gap-2"
@@ -106,6 +114,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ user, onLogout }) => {
                     </div>
                 )}
             </div>
+
+            {/* User Guide Modal */}
+            {showGuide && (
+                <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-y-auto">
+                    <UserGuide onClose={() => setShowGuide(false)} />
+                </div>
+            )}
         </div>
     );
 };

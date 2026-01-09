@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sendChatMessage } from '../services/geminiService';
 import { ChatMessage } from '../types';
+import { UserGuide } from './UserGuide';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -10,6 +11,7 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   const [scrolled, setScrolled] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [showGuide, setShowGuide] = useState(false);
 
   // Chat State
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
@@ -122,6 +124,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             <div className={`hidden md:flex items-center gap-6 text-xs font-medium text-slate-600 ${scrolled ? 'opacity-100' : 'opacity-100'}`}>
                 <button onClick={() => scrollToSection('how-it-works')} className="hover:text-blue-600 transition-colors">Ishlash Jarayoni</button>
                 <button onClick={() => scrollToSection('features')} className="hover:text-blue-600 transition-colors">Imkoniyatlar</button>
+                <button onClick={() => setShowGuide(true)} className="hover:text-blue-600 transition-colors">Qanday Foydalanaman?</button>
                 <button onClick={() => scrollToSection('contact')} className="hover:text-blue-600 transition-colors bg-blue-50 text-blue-600 px-3 py-1 rounded-lg">Bog'lanish</button>
             </div>
             <button 
@@ -164,6 +167,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                     className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg shadow-[0_10px_40px_-10px_rgba(37,99,235,0.5)] hover:shadow-[0_20px_40px_-10px_rgba(37,99,235,0.6)] hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
                 >
                     <span className="text-xl">✨</span> Bepul Boshlash
+                </button>
+                <button 
+                    onClick={() => setShowGuide(true)}
+                    className="px-8 py-4 bg-white text-slate-700 border border-slate-200 rounded-2xl font-bold text-lg shadow-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                >
+                    <span>📚</span> Qanday Foydalanaman?
                 </button>
                 <button 
                      onClick={() => scrollToSection('contact')}
@@ -557,6 +566,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               </div>
           </div>
       </footer>
+
+      {/* User Guide Modal */}
+      {showGuide && (
+        <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <UserGuide onClose={() => setShowGuide(false)} />
+        </div>
+      )}
     </div>
   );
 };
