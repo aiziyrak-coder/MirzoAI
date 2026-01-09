@@ -16,6 +16,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
     const [organization, setOrganization] = useState('');
     const [password2, setPassword2] = useState('');
     const [error, setError] = useState('');
+    const [showAdminLogin, setShowAdminLogin] = useState(false);
+    const [adminSecret, setAdminSecret] = useState('');
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -36,6 +38,18 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
         
         try {
             if (isLogin) {
+                // Admin login check
+                if (showAdminLogin) {
+                    if (!adminSecret) {
+                        setError("Admin parolini kiriting.");
+                        return;
+                    }
+                    const user = await authService.loginAsAdmin(adminSecret);
+                    onLogin(user);
+                    return;
+                }
+                
+                // Regular login
                 if (!phoneNumber || !password) {
                     setError("Telefon raqam va parolni kiriting.");
                     return;
@@ -107,7 +121,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
                 </div>
 
                 <h2 className="text-xl font-bold mb-6 text-slate-700 relative z-10 text-center">
-                    {isLogin ? "Tizimga kirish" : "Ro'yxatdan o'tish"}
+                    {isLogin ? (showAdminLogin ? "Admin kirish" : "Tizimga kirish") : "Ro'yxatdan o'tish"}
                 </h2>
 
                 {error && (
@@ -117,6 +131,23 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
+                    {isLogin && showAdminLogin && (
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                                Admin Parol <span className="text-red-500">*</span>
+                            </label>
+                            <input 
+                                type="password" 
+                                required
+                                value={adminSecret}
+                                onChange={e => setAdminSecret(e.target.value)}
+                                placeholder="Admin parolini kiriting"
+                                autoComplete="off"
+                                className="w-full p-3 bg-white/50 border border-white/60 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black placeholder-slate-400 font-bold"
+                            />
+                        </div>
+                    )}
+                    
                     {!isLogin && (
                         <>
                             <div>
@@ -146,46 +177,50 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
                         </>
                     )}
 
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                            Telefon Raqam <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">+998</span>
-                            <input 
-                                type="tel" 
-                                required
-                                value={phoneNumber.replace('+998', '')}
-                                onChange={handlePhoneChange}
-                                placeholder="901234567"
-                                autoComplete="off"
-                                maxLength={9}
-                                className="w-full p-3 pl-16 bg-white/50 border border-white/60 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black placeholder-slate-400 font-bold"
-                            />
-                        </div>
-                        {!isLogin && phoneNumber && !validatePhoneNumber(phoneNumber) && (
-                            <p className="text-xs text-red-500 mt-1">Telefon raqam 9 raqamdan iborat bo'lishi kerak (998 dan keyin)</p>
-                        )}
-                    </div>
+                    {!showAdminLogin && (
+                        <>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                                    Telefon Raqam <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">+998</span>
+                                    <input 
+                                        type="tel" 
+                                        required={!showAdminLogin}
+                                        value={phoneNumber.replace('+998', '')}
+                                        onChange={handlePhoneChange}
+                                        placeholder="901234567"
+                                        autoComplete="off"
+                                        maxLength={9}
+                                        className="w-full p-3 pl-16 bg-white/50 border border-white/60 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black placeholder-slate-400 font-bold"
+                                    />
+                                </div>
+                                {!isLogin && phoneNumber && !validatePhoneNumber(phoneNumber) && (
+                                    <p className="text-xs text-red-500 mt-1">Telefon raqam 9 raqamdan iborat bo'lishi kerak (998 dan keyin)</p>
+                                )}
+                            </div>
 
-                    <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                            Parol <span className="text-red-500">*</span>
-                            {!isLogin && <span className="text-slate-400 text-xs normal-case ml-2">(kamida 6 belgi)</span>}
-                        </label>
-                        <input 
-                            type="password" 
-                            required
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder={isLogin ? "Parol" : "Kamida 6 belgi"}
-                            autoComplete="new-password"
-                            className="w-full p-3 bg-white/50 border border-white/60 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black placeholder-slate-400 font-bold"
-                        />
-                        {!isLogin && password && password.length < 6 && (
-                            <p className="text-xs text-red-500 mt-1">Parol kamida 6 belgidan iborat bo'lishi kerak</p>
-                        )}
-                    </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                                    Parol <span className="text-red-500">*</span>
+                                    {!isLogin && <span className="text-slate-400 text-xs normal-case ml-2">(kamida 6 belgi)</span>}
+                                </label>
+                                <input 
+                                    type="password" 
+                                    required={!showAdminLogin}
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    placeholder={isLogin ? "Parol" : "Kamida 6 belgi"}
+                                    autoComplete="new-password"
+                                    className="w-full p-3 bg-white/50 border border-white/60 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-black placeholder-slate-400 font-bold"
+                                />
+                                {!isLogin && password && password.length < 6 && (
+                                    <p className="text-xs text-red-500 mt-1">Parol kamida 6 belgidan iborat bo'lishi kerak</p>
+                                )}
+                            </div>
+                        </>
+                    )}
 
                         {!isLogin && (
                         <div>
@@ -215,7 +250,21 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm relative z-10">
+                <div className="mt-6 text-center text-sm relative z-10 space-y-2">
+                    {isLogin && (
+                        <button 
+                            onClick={() => {
+                                setShowAdminLogin(!showAdminLogin);
+                                setPhoneNumber('');
+                                setPassword('');
+                                setAdminSecret('');
+                                setError('');
+                            }}
+                            className="text-xs text-slate-400 hover:text-blue-600 font-medium"
+                        >
+                            {showAdminLogin ? "← Oddiy kirish" : "Admin kirish"}
+                        </button>
+                    )}
                     <p className="text-slate-500">
                         {isLogin ? "Hali hisobingiz yo'qmi?" : "Hisobingiz bormi?"}
                         <button 
@@ -226,6 +275,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, onBack }) => {
                                 setPassword2('');
                                 setFullName('');
                                 setOrganization('');
+                                setShowAdminLogin(false);
+                                setAdminSecret('');
                                 setError('');
                             }}
                             className="ml-2 font-bold text-blue-600 hover:underline"
