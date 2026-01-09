@@ -309,6 +309,11 @@ class ApiClient {
     return response.data;
   }
 
+  async getUserReceipt(userId: string) {
+    const response = await this.client.get(`/admin/users/${userId}/receipt/`);
+    return response.data;
+  }
+
   // AI methods
   async sendChatMessage(history: Array<{ role: 'user' | 'model'; text: string }>, message: string) {
     const response = await this.client.post('/ai/chat/', { history, message });

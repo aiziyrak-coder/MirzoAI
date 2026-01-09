@@ -28,6 +28,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         isAdmin: false,
         isActive: true
     });
+    const [showReceiptModal, setShowReceiptModal] = useState(false);
+    const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+    const [receiptLoading, setReceiptLoading] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -89,7 +92,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     subscriptionStatus: u.subscriptionStatus,
                     subscriptionExpiry: u.subscriptionExpiry,
                     history: [],
-                    isAdmin: u.isAdmin || false
+                    isAdmin: u.isAdmin || false,
+                    receiptFileName: u.receiptFileName || undefined
                 })));
             }
         } catch (error: any) {
@@ -238,6 +242,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
             alert('Xatolik: ' + (error.message || 'Foydalanuvchini saqlashda xatolik'));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleViewReceipt = async (userId: string) => {
+        try {
+            setReceiptLoading(true);
+            const response = await apiClient.getUserReceipt(userId);
+            if (response.success && response.receipt_url) {
+                setReceiptUrl(response.receipt_url);
+                setShowReceiptModal(true);
+            } else {
+                alert('Chek rasmi topilmadi');
+            }
+        } catch (error: any) {
+            alert('Xatolik: ' + (error.message || 'Chek rasmini yuklashda xatolik'));
+        } finally {
+            setReceiptLoading(false);
         }
     };
 
@@ -413,12 +434,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                         <td className="p-4">
                                             <div className="flex justify-center gap-2 flex-wrap">
                                                 {user.subscriptionStatus === 'PENDING' && (
-                                                    <button 
-                                                        onClick={() => handleStatusChange(user.id, 'ACTIVE')}
-                                                        className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 shadow-md shadow-green-200"
-                                                    >
-                                                        Tasdiqlash
-                                                    </button>
+                                                    <>
+                                                        {user.receiptFileName && (
+                                                            <button 
+                                                                onClick={() => handleViewReceipt(user.id)}
+                                                                disabled={receiptLoading}
+                                                                className="px-3 py-1 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 shadow-md shadow-purple-200 flex items-center gap-1"
+                                                            >
+                                                                📄 {receiptLoading ? 'Yuklanmoqda...' : 'Chekni ko\'rish'}
+                                                            </button>
+                                                        )}
+                                                        <button 
+                                                            onClick={() => handleStatusChange(user.id, 'ACTIVE')}
+                                                            className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 shadow-md shadow-green-200"
+                                                        >
+                                                            ✅ Tasdiqlash
+                                                        </button>
+                                                    </>
                                                 )}
                                                 {user.subscriptionStatus === 'ACTIVE' && (
                                                      <button 
@@ -591,6 +623,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                     className="px-6 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300"
                                 >
                                     Bekor qilish
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Receipt View Modal */}
+            {showReceiptModal && receiptUrl && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowReceiptModal(false)}>
+                    <div className="glass-panel max-w-4xl w-full rounded-3xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <span>📄</span> To'lov Cheki
+                            </h2>
+                            <button 
+                                onClick={() => {
+                                    setShowReceiptModal(false);
+                                    setReceiptUrl(null);
+                                }}
+                                className="text-slate-500 hover:text-slate-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                                <img 
+                                    src={receiptUrl} 
+                                    alt="To'lov cheki" 
+                                    className="max-w-full h-auto mx-auto rounded-lg shadow-lg"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23f3f4f6"/><text x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-family="Arial" font-size="18">Rasm yuklanmadi</text></svg>';
+                                    }}
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <a 
+                                    href={receiptUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 font-bold"
+                                >
+                                    🔗 Yangi oynada ochish
+                                </a>
+                                <button 
+                                    onClick={() => {
+                                        setShowReceiptModal(false);
+                                        setReceiptUrl(null);
+                                    }}
+                                    className="px-6 py-2 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 font-bold"
+                                >
+                                    Yopish
                                 </button>
                             </div>
                         </div>

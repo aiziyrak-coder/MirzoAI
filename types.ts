@@ -74,6 +74,7 @@ export interface User {
     subscriptionExpiry?: string;
     history: SavedDocument[];
     isAdmin?: boolean; // New flag for super admin
+    receiptFileName?: string; // Receipt file name for pending subscriptions
 }
 
 export interface Tool {
