@@ -253,10 +253,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 setReceiptUrl(response.receipt_url);
                 setShowReceiptModal(true);
             } else {
-                alert('Chek rasmi topilmadi');
+                alert('Chek rasmi topilmadi. Foydalanuvchi hali chek yuklamagan yoki chek o\'chirilgan.');
             }
         } catch (error: any) {
-            alert('Xatolik: ' + (error.message || 'Chek rasmini yuklashda xatolik'));
+            if (error.response?.status === 404) {
+                alert('Chek rasmi topilmadi. Foydalanuvchi hali chek yuklamagan yoki chek o\'chirilgan.');
+            } else {
+                alert('Xatolik: ' + (error.message || 'Chek rasmini yuklashda xatolik'));
+            }
         } finally {
             setReceiptLoading(false);
         }
@@ -435,15 +439,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                                             <div className="flex justify-center gap-2 flex-wrap">
                                                 {user.subscriptionStatus === 'PENDING' && (
                                                     <>
-                                                        {user.receiptFileName && (
-                                                            <button 
-                                                                onClick={() => handleViewReceipt(user.id)}
-                                                                disabled={receiptLoading}
-                                                                className="px-3 py-1 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 shadow-md shadow-purple-200 flex items-center gap-1"
-                                                            >
-                                                                📄 {receiptLoading ? 'Yuklanmoqda...' : 'Chekni ko\'rish'}
-                                                            </button>
-                                                        )}
+                                                        <button 
+                                                            onClick={() => handleViewReceipt(user.id)}
+                                                            disabled={receiptLoading}
+                                                            className="px-3 py-1 bg-purple-500 text-white rounded-lg text-sm hover:bg-purple-600 shadow-md shadow-purple-200 flex items-center gap-1"
+                                                        >
+                                                            📄 {receiptLoading ? 'Yuklanmoqda...' : 'Chekni ko\'rish'}
+                                                        </button>
                                                         <button 
                                                             onClick={() => handleStatusChange(user.id, 'ACTIVE')}
                                                             className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 shadow-md shadow-green-200"
